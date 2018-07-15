@@ -12,24 +12,34 @@ app.use(function(req, res, next) {
   next();
 });
 
+app.use(bodyparser.urlencoded({extended: true}));
 app.use(bodyparser.json());
 
 app.post('/repos', function (req, res) {
   console.log('Search submit worked from ther server!')
-  const username = req.body.username;
+  const username = req.body.results;
+  console.log('req body: ' + req.body);
+  console.log('c\'est username: ' + username);
   // This route should take the github username provided
   // and get the repo information from the github API, then
   // save the repo information in the database
 
   //result of successful repo retrieval from Git API
   //const reposArray;
-  const reposArray = git.getReposByUsername(username);
-  db.save(reposArray);
+  git.getReposByUsername(username,  (results) => {
+    console.log('results' + results);
+    db.save(results);
+    res.send({result: results});
+  });
 });
 
 app.get('/repos', function (req, res) {
-  // TODO - your code here!
-  // This route should send back the top 25 repos
+  console.log('get request reaching server!');
+  db.Repo.find().sort({"stargazers_count": -1}).limit(25).exec( (err, results) => {
+    console.log('GET RESULTS: ' + results.toArray());
+    res.send({result: results.toArray()});
+  });
+
 });
 
 let port = 1128;

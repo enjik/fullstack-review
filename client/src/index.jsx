@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import $ from 'jquery';
 import Search from './components/Search.jsx';
 import RepoList from './components/RepoList.jsx';
+import Repo from './components/Repo.jsx';
 
 class App extends React.Component {
   constructor(props) {
@@ -11,15 +12,30 @@ class App extends React.Component {
       repos: []
     }
   }
+  componentDidMount() {
+    var that = this;
+    $.ajax({
+      method: "GET",
+      url: "/repos",
+      dataType: 'json',
+      success: function(data) {
+        that.setState({"repos": data.result});
+      },
+      error: function(data, err) {
+        console.log('error in retrieving repos: ' + err);
+      }
+    })
+  }
 
-  search (term) {
+  search(term) {
+    var that = this;
     $.ajax({
       method: "POST",
       url: "/repos",
       data: {results: term},
-      dataType: "json",
-      success: function(results) {
-        //results should be the repo content to be rendered
+      dataType: 'json',
+      success: function(data) {
+        that.setState({"repos": data.result});
       },
       error: function(obj, err) {
         console.log(err);
@@ -28,11 +44,11 @@ class App extends React.Component {
     console.log(`${term} was searched`);
   }
 
-  render () {
+  render() {
     return (<div>
       <h1>Github Fetcher</h1>
-      <RepoList repos={this.state.repos}/>
       <Search onSearch={this.search.bind(this)}/>
+      <RepoList repos={this.state.repos}/>
     </div>)
   }
 }
